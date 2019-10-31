@@ -1,23 +1,23 @@
-import React, { PureComponent, Suspense, lazy } from 'react';
-import { createBrowserHistory } from 'history'
-import Home from '../pages/Home';
-import percent from '../helpers/percent';
-import Menu from '../components/Menu';
-import Page from '../components/Page';
-import Loader from '../components/Loader';
-import Audio from '../helpers/audio';
-import { initialState } from '../data';
-import './style.scss';
+import React, { PureComponent, Suspense, lazy } from "react";
+import { createBrowserHistory } from "history";
+import Home from "../pages/Home";
+import percent from "../helpers/percent";
+import Menu from "../components/Menu";
+import Page from "../components/Page";
+import Loader from "../components/Loader";
+import Audio from "../helpers/audio";
+import { initialState } from "../data";
+import "./style.scss";
 
-const List = lazy(() => import('../pages/List'));
-const About = lazy(() => import('../pages/About'));
-const Detail = lazy(() => import('../pages/Detail'));
+const List = lazy(() => import("../pages/List"));
+const About = lazy(() => import("../pages/About"));
+const Detail = lazy(() => import("../pages/Detail"));
 
 class App extends PureComponent {
   constructor(props) {
     super(props);
 
-    this.playlistUrl = `https://api.soundcloud.com/users/${process.env.REACT_APP_SOUNDCLOUD_USER_ID}/playlists?client_id=${process.env.REACT_APP_SOUNDCLOUD_APP_CLIENT_ID}`;
+    this.playlistUrl = `https://api.soundcloud.com/users/the_doodloo/playlists?client_id=iHwMAYPsv39tFIqaL5hR3Un41wI7JhXO`;
     this.state = {
       ...initialState
     };
@@ -25,61 +25,68 @@ class App extends PureComponent {
     this.history = createBrowserHistory();
   }
 
-  componentDidMount () {
-    this.history.listen((location) => {
+  componentDidMount() {
+    this.history.listen(location => {
       this.setState(() => {
-        return { currentView: this.history.location.state.view || '/' };
+        return { currentView: this.history.location.state.view || "/" };
       });
 
-      if (location.state.view === 'list' && !this.state.tracks[0].id) {
+      if (location.state.view === "list" && !this.state.tracks[0].id) {
         this.fetchPlayList();
-      };
+      }
     });
 
     this.setupAudio();
 
-    this.history.push('/', { view: 'home' });
+    this.history.push("/", { view: "home" });
   }
 
   onStartClick = () => {
-    this.changeView('list');
-  }
+    this.changeView("list");
+  };
 
   fetchPlayList = async () => {
     const result = await fetch(this.playlistUrl);
     const data = await result.json();
 
     this.updateSate(data);
-  }
+  };
 
-  updateSate (data) {
+  updateSate(data) {
     const updatedState = {
-      tracks: [...data[0].tracks.map((track, index) => {
-        return Object.assign({}, {
-          ...this.state.track,
-          id: track.id,
-          stream_url: track.stream_url,
-          uri: track.uri,
-          duration: track.duration,
-          favoritings_count: track.favoritings_count,
-          artist: track.user.username,
-          artwork_url: track.artwork_url ? track.artwork_url.replace('large', 't50x50') : '',
-          title: track.title.toLowerCase(),
-          permalink_url: track.permalink_url,
-          index,
-        });
-      })],
-      playlistLoaded: true,
+      tracks: [
+        ...data[0].tracks.map((track, index) => {
+          return Object.assign(
+            {},
+            {
+              ...this.state.track,
+              id: track.id,
+              stream_url: track.stream_url,
+              uri: track.uri,
+              duration: track.duration,
+              favoritings_count: track.favoritings_count,
+              artist: track.user.username,
+              artwork_url: track.artwork_url
+                ? track.artwork_url.replace("large", "t50x50")
+                : "",
+              title: track.title.toLowerCase(),
+              permalink_url: track.permalink_url,
+              index
+            }
+          );
+        })
+      ],
+      playlistLoaded: true
     };
 
     this.setState(() => updatedState);
   }
 
-  changeView (view) {
+  changeView(view) {
     this.history.push(`/${view}`, { view });
   }
 
-  setTrack (track) {
+  setTrack(track) {
     this.setState(() => {
       return {
         track,
@@ -92,38 +99,41 @@ class App extends PureComponent {
     });
   }
 
-  canChangeTrack () {
+  canChangeTrack() {
     return this.state.changingTrack === false;
   }
 
-  getNextTrack () {
+  getNextTrack() {
     const nextTrack = this.state.tracks[this.state.track.index + 1];
 
     return nextTrack ? { ...nextTrack } : null;
   }
 
-  getPreviousTrack () {
+  getPreviousTrack() {
     const prevTrack = this.state.tracks[this.state.track.index - 1];
 
     return prevTrack ? { ...prevTrack } : null;
   }
 
-  changeTrack (track) {
+  changeTrack(track) {
     if (this.canChangeTrack() && track) {
       this.setTrack(track);
       this.onPlayClick(track);
     }
   }
 
-  selectTrack = (id) => {
-    return this.state.tracks.filter((track) => Number(id) === track.id)[0];
-  }
+  selectTrack = id => {
+    return this.state.tracks.filter(track => Number(id) === track.id)[0];
+  };
 
-  setupAudio () {
+  setupAudio() {
     this.timeupdate = this.timeupdate.bind(this);
     this.audioStop = this.audioStop.bind(this);
 
-    this.audio = new Audio(document.querySelector('#audio'), this.props.audioContext);
+    this.audio = new Audio(
+      document.querySelector("#audio"),
+      this.props.audioContext
+    );
     this.audio.setup();
     this.audio.setTimerHandler(this.timeupdate);
     this.audio.setStopHandler(this.audioStop);
@@ -133,31 +143,35 @@ class App extends PureComponent {
           changingTrack: false
         };
       });
-    })
+    });
   }
 
-  audioStop () {
+  audioStop() {
     this.setState({
       track: {
-        ...this.state.track, currentTime: 0, percentage: 0, playing: false,
+        ...this.state.track,
+        currentTime: 0,
+        percentage: 0,
+        playing: false,
         played: false,
-        paused: true,
+        paused: true
       }
     });
   }
 
-  timeupdate = (evt) => {
+  timeupdate = evt => {
     this.setState({
       track: {
-        ...this.state.track, currentTime: evt.target.currentTime,
+        ...this.state.track,
+        currentTime: evt.target.currentTime,
         percentage: percent(evt.target.currentTime, evt.target.duration) / 100
       }
     });
-  }
+  };
 
-  onListClick = (id) => {
+  onListClick = id => {
     if (id !== this.state.track.id) {
-      this.audio.setAudioSource('');
+      this.audio.setAudioSource("");
     }
 
     const track = {
@@ -166,21 +180,23 @@ class App extends PureComponent {
       percentage: 0,
       playing: this.state.track.id === id ? this.state.track.playing : false,
       played: this.state.track.id === id ? this.state.track.played : false,
-      paused: this.state.track.id === id ? this.state.track.paused : true,
+      paused: this.state.track.id === id ? this.state.track.paused : true
     };
 
     this.setState(() => {
       return { track };
     });
 
-    this.changeView('detail');
+    this.changeView("detail");
 
     this.onPlayClick(track);
-  }
+  };
 
-  onPlayClick = (track) => {
+  onPlayClick = track => {
     if (!track.played) {
-      this.audio.setAudioSource(`${track.stream_url}?client_id=${process.env.REACT_APP_SOUNDCLOUD_APP_CLIENT_ID}`);
+      this.audio.setAudioSource(
+        `${track.stream_url}?client_id=iHwMAYPsv39tFIqaL5hR3Un41wI7JhXO`
+      );
     }
 
     this.setState(() => {
@@ -196,9 +212,9 @@ class App extends PureComponent {
 
     this.audio.resume();
     this.audio.play();
-  }
+  };
 
-  onPauseClick = (track) => {
+  onPauseClick = track => {
     this.audio.pause();
 
     this.setState(() => {
@@ -208,29 +224,29 @@ class App extends PureComponent {
           paused: true,
           playing: false
         }
-      }
+      };
     });
-  }
+  };
 
   onBackClick = () => {
     this.history.go(-1);
 
     this.setState(() => {
-      return { currentView: this.history.location.state.view || '/' };
+      return { currentView: this.history.location.state.view || "/" };
     });
-  }
+  };
 
   onAboutClick = () => {
-    this.changeView('about');
-  }
+    this.changeView("about");
+  };
 
   onPlayNext = () => {
     this.changeTrack(this.getNextTrack());
-  }
+  };
 
   onPlayPrev = () => {
     this.changeTrack(this.getPreviousTrack());
-  }
+  };
 
   onRepeatClick = () => {
     const repeat = !this.state.repeat;
@@ -240,42 +256,56 @@ class App extends PureComponent {
     });
 
     this.audio.repeat(repeat);
-  }
+  };
 
-  render () {
+  render() {
     return (
       <main className="app">
         <audio id="audio" crossOrigin="anonymous"></audio>
         <div className="shell">
-          <Menu history={this.history}
+          <Menu
+            history={this.history}
             activeView={this.state.currentView}
             onBackClick={this.onBackClick}
             onAboutClick={this.onAboutClick}
-            onCloseClick={this.onBackClick} />
+            onCloseClick={this.onBackClick}
+          />
           <div className="page-wrapper">
-            <Page className="home" active={this.state.currentView === 'home'}>
+            <Page className="home" active={this.state.currentView === "home"}>
               <Home onStartClick={this.onStartClick} />
             </Page>
             <Suspense fallback={<Loader />}>
-              <Page className="list" active={this.state.currentView === 'list'}>
-                <List track={this.state.track} tracks={this.state.tracks} onClick={this.onListClick} />
+              <Page className="list" active={this.state.currentView === "list"}>
+                <List
+                  track={this.state.track}
+                  tracks={this.state.tracks}
+                  onClick={this.onListClick}
+                />
               </Page>
-              <Page className="detail" active={this.state.currentView === 'detail'}>
-                <Detail track={this.state.track}
+              <Page
+                className="detail"
+                active={this.state.currentView === "detail"}
+              >
+                <Detail
+                  track={this.state.track}
                   repeat={this.state.repeat}
                   onRepeatClick={this.onRepeatClick}
                   onPlayClick={this.onPlayClick}
                   onPlayNext={this.onPlayNext}
                   onPlayPrev={this.onPlayPrev}
-                  onPauseClick={this.onPauseClick} />
+                  onPauseClick={this.onPauseClick}
+                />
               </Page>
-              <Page className="about" active={this.state.currentView === 'about'}>
+              <Page
+                className="about"
+                active={this.state.currentView === "about"}
+              >
                 <About />
               </Page>
             </Suspense>
           </div>
         </div>
-      </main >
+      </main>
     );
   }
 }
