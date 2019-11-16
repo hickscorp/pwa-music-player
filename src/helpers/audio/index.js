@@ -1,32 +1,33 @@
-export default class Audio {
+export default class Audio2 {
   constructor(element, audioCtx) {
-    this.element = element;
-    this.context  = audioCtx;
-    this.repeatPlayback = false;
-    this._ended = this._ended.bind(this);
-    this.stopHandler = () => {};
+    // this.element = element;
+    // this.context  = audioCtx;
+    // this.repeatPlayback = false;
+    // this._ended = this._ended.bind(this);
+    // this.stopHandler = () => {};
   }
 
   _createAnalyser() {
-    this.analyser = this.context.createAnalyser();
+    // console.log("this.context", this.context)
+    // this.analyser = this.context.createAnalyser();
   }
 
   _createMediaElementSource() {
-    this.source = this.context.createMediaElementSource(this.element);
-    this.source.connect(this.analyser);
-    this.analyser.connect(this.context.destination);
+    // this.source = this.context.createMediaElementSource(this.element);
+    // this.source.connect(this.analyser);
+    // this.analyser.connect(this.context.destination);
   }
 
   _ended() {
-    if(this.repeatPlayback) {
-      this.play();
-    } else {
-      this.stopHandler();
-    }
+    // if(this.repeatPlayback) {
+    //   this.play();
+    // } else {
+    //   this.stopHandler();
+    // }
   }
 
   _canplay() {
-    this.canplayCallback();
+     this.canplayCallback();
   }
 
   canplay(callback) {
@@ -34,42 +35,42 @@ export default class Audio {
   }
 
   setup() {
-    this._createAnalyser();
-    this._createMediaElementSource();
+    // this._createAnalyser();
+    // this._createMediaElementSource();
 
-    this.element.addEventListener('canplay', this._canplay.bind(this));
-    this.element.addEventListener('ended', this._ended);
+    // this.element.addEventListener('canplay', this._canplay.bind(this));
+    // this.element.addEventListener('ended', this._ended);
   }
 
   setTimerHandler(callback) {
-    this.element.addEventListener('timeupdate', callback);
+    // this.element.addEventListener('timeupdate', callback);
   }
 
   setStopHandler(callback) {
-    this.stopHandler = callback;
+    // this.stopHandler = callback;
   }
 
   setVolume(amount) {
-    this.element.volume = amount;
+    // this.element.volume = amount;
   }
 
   setAudioSource(src) {
-    this.element.src = src;
+    // this.element.src = src;
   }
 
   resume() {
-    this.context.resume();
+    // this.context.resume();
   }
 
   play() {
-    this.element.play();
+    // this.element.play();
   }
 
   pause() {
-    this.element.pause();
+    // this.element.pause();
   }
 
   repeat(value) {
-    this.repeatPlayback = value;
+    // this.repeatPlayback = value;
   }
 }
