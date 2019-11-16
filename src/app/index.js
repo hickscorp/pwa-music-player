@@ -5,7 +5,7 @@ import percent from '../helpers/percent';
 import Menu from '../components/Menu';
 import Page from '../components/Page';
 import Loader from '../components/Loader';
-import Audio from '../helpers/audio';
+import Audio2 from '../helpers/audio';
 import { initialState } from '../data';
 import './style.scss';
 
@@ -123,7 +123,8 @@ class App extends PureComponent {
     this.timeupdate = this.timeupdate.bind(this);
     this.audioStop = this.audioStop.bind(this);
 
-    this.audio = new Audio(document.querySelector('#audio'), this.props.audioContext);
+    this.audio = new Audio2(document.querySelector('#audio'), this.props.audioContext);
+    this.audio2 =  new Audio(document.getElementById("#audio"))
     this.audio.setup();
     this.audio.setTimerHandler(this.timeupdate);
     this.audio.setStopHandler(this.audioStop);
@@ -179,27 +180,57 @@ class App extends PureComponent {
   }
 
   onPlayClick = (track) => {
-    if (!track.played) {
-      this.audio.setAudioSource(`${track.stream_url}?client_id=${process.env.REACT_APP_SOUNDCLOUD_APP_CLIENT_ID}`);
+    let self = this;
+
+    // if (!track.played) {
+
+    //   new Audio(`${track.stream_url}?client_id=${process.env.REACT_APP_SOUNDCLOUD_APP_CLIENT_ID}`)
+    //   this.audio.setAudioSource(`${track.stream_url}?client_id=${process.env.REACT_APP_SOUNDCLOUD_APP_CLIENT_ID}`);
+    // }
+
+    // this.setState(() => {
+    //   return {
+    //     track: {
+    //       ...track,
+    //       paused: false,
+    //       playing: true,
+    //       played: true
+    //     }
+    //   };
+    // });
+
+    // this.audio.resume();
+    // this.audio.play();
+    console.log("this.audio2", this.audio2, this.audio2.paused)
+
+    if (this.audio2.paused) {
+      console.log("entra aquiiii")
+      this.audio2.addEventListener('loadedmetadata', function canplay() {
+        console.log("entra aquiiii 2 ")
+        this.removeEventListener('loadedmetadata', canplay, false);
+        this.play();
+        self.setState(() => {
+          return {
+            track: {
+              ...track,
+              paused: false,
+              playing: true,
+              played: true
+            }
+          };
+        });
+      }, false);
+  
+      this.audio2.src = `${track.stream_url}?client_id=${process.env.REACT_APP_SOUNDCLOUD_APP_CLIENT_ID}`;
     }
+    else {
 
-    this.setState(() => {
-      return {
-        track: {
-          ...track,
-          paused: false,
-          playing: true,
-          played: true
-        }
-      };
-    });
-
-    this.audio.resume();
-    this.audio.play();
+      this.onPauseClick(track)
+    }
   }
 
   onPauseClick = (track) => {
-    this.audio.pause();
+    this.audio2.pause();
 
     this.setState(() => {
       return {
